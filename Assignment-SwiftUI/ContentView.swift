@@ -15,10 +15,19 @@ struct ContentView: View {
             List(products.listProducts){ product in
                 Section{
                     HStack{
-                        Image("product-default")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 64,height: 64)
+                        if let image = product.image{
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 64,height: 64)
+                        }
+                        else {
+                            Image("product-default")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 64,height: 64)
+                        }
+                            
                         VStack{
                             Text("\(product.product_name)")
                             Text("\(product.product_type)")
@@ -39,7 +48,7 @@ struct ContentView: View {
                 
             }
             .sheet(isPresented: $isShowingSheet){
-                AddProductView()
+                AddProductView(products: products)
             }
         }
     }
