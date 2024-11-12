@@ -5,27 +5,28 @@
 //  Created by APPLE on 11/11/24.
 //
 
-import Foundation
 
 import SwiftUI
 
-struct Product: Identifiable{
+struct Product: Identifiable, Codable{
     var id = UUID()
-    let image: Image?
+    let image: String?
     let price: Double
     let product_name: String
     let product_type: String
     let tax: Double
+    
+    // Define CodingKeys to exclude `id` from decoding
+        enum CodingKeys: String, CodingKey {
+            case image
+            case price
+            case product_name
+            case product_type
+            case tax
+        }
 }
 
 @Observable
 class Products{
-    var listProducts = [
-        Product(image: Image("https://vx-erp-product-images.s3.ap-south-1.amazonaws.com/9_1731279605_0_image.jpg"), price: 1694.915, product_name: "Testing App", product_type: "Product", tax: 18.0),
-        Product(image: Image("https://vx-erp-product-images.s3.ap-south-1.amazonaws.com/9_1731279605_0_image.jpg"), price: 1694.915, product_name: "Testing App", product_type: "Product", tax: 18.0),
-        Product(image: Image("https://vx-erp-product-images.s3.ap-south-1.amazonaws.com/9_1731279605_0_image.jpg"), price: 1694.915, product_name: "Testing App", product_type: "Product", tax: 18.0),
-        Product(image: Image("https://vx-erp-product-images.s3.ap-south-1.amazonaws.com/9_1731279605_0_image.jpg"), price: 1694.915, product_name: "Testing App", product_type: "Product", tax: 18.0),
-        Product(image: Image("https://vx-erp-product-images.s3.ap-south-1.amazonaws.com/9_1731279605_0_image.jpg"), price: 1694.915, product_name: "Testing App", product_type: "Product", tax: 18.0),
-        Product(image: Image("https://vx-erp-product-images.s3.ap-south-1.amazonaws.com/9_1731279605_0_image.jpg"), price: 1694.915, product_name: "Testing App", product_type: "Product", tax: 18.0),
-    ]
+    var listProducts = [Product]()
 }

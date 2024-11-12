@@ -15,18 +15,17 @@ struct ContentView: View {
             List(products.listProducts){ product in
                 Section{
                     HStack{
-                        if let image = product.image{
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 64,height: 64)
+                        if let imageUrl = URL(string: product.image ?? ""){
+                            AsyncImage(url: imageUrl){ image in
+                                         image
+                                           .resizable()
+                                           .scaledToFit()
+                                           .frame(height: 200)
+                            }placeholder: {
+                                ProgressView()
+                            }
                         }
-                        else {
-                            Image("product-default")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 64,height: 64)
-                        }
+                        
                             
                         VStack{
                             Text("\(product.product_name)")
@@ -48,9 +47,48 @@ struct ContentView: View {
                 
             }
             .sheet(isPresented: $isShowingSheet){
-                AddProductView(products: products)
+                
+//                AddProductView(products: products)
+            }
+            .task{
+                await loadData()
             }
         }
+    }
+    func loadData() async {
+        guard let url = URL(string: "https://app.getswipe.in/api/public/get") else {
+            return
+        }
+        print("123 url is \(url)")
+        do {
+            let (data, _) = try await URLSession.shared.data(from:url)
+            print("234 data is \(data)")
+            if let decoded = try? JSONDecoder().decode([Product].self,from: data){
+                print("567 decoded is \(decoded)")
+                products.listProducts = decoded
+                print("7854 \(products.listProducts)")
+            }else {
+                print("Failed to decode JSON data")
+            }
+           
+            }
+     catch{
+            print("invalid url")
+        }
+//        do {
+//            let (data, _) = try await URLSession.shared.data(from: url)
+//            print("Data received: \(String(data: data, encoding: .utf8) ?? "No data")")
+//
+//            do {
+//                let decodedProducts = try JSONDecoder().decode([Product].self, from: data)
+//                print("Decoded products: \(decodedProducts)")
+//                products.listProducts = decodedProducts
+//            } catch let decodingError {
+//                print("Failed to decode JSON data: \(decodingError)")
+//            }
+//        } catch {
+//            print("Error fetching data: \(error)")
+//        }
     }
 }
 
