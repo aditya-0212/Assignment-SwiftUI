@@ -8,25 +8,32 @@
 
 import SwiftUI
 
-struct Product: Identifiable, Codable{
-    var id = UUID()
-    let image: String?
-    let price: Double
-    let product_name: String
+struct Product: Codable{
     let product_type: String
+    let product_name: String
+    let price: Double
     let tax: Double
-    
-    // Define CodingKeys to exclude `id` from decoding
-        enum CodingKeys: String, CodingKey {
-            case image
-            case price
-            case product_name
-            case product_type
-            case tax
-        }
+}
+struct Response: Codable{
+    let message: String
+    let product_details: Product
+    let product_id: Int
+    let Success: Bool
 }
 
 @Observable
-class Products{
-    var listProducts = [Product]()
+class Products: Identifiable, Codable{
+    enum CodingKeys: String, CodingKey {
+        case _image = "image"
+        case _price  = "price"
+        case _product_name = "product_name"
+        case _product_type = "product_type"
+        case _tax = "tax"
+    }
+    var id = UUID()
+    var image: String?
+    var price = 0.0
+    var product_name = ""
+    var product_type = ""
+    var tax = 0.0
 }

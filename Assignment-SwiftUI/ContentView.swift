@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var products = Products()
+    @State private var products = [Products]()
     @State private var isShowingSheet = false
     var body: some View {
         NavigationStack{
-            List(products.listProducts){ product in
+            List(products){ product in
                 Section{
                     HStack{
-                        if let imageUrl = URL(string: product.image ?? ""){
+                        if let imageUrl = URL(string: product.image ?? "https://dodolan.jogjakota.go.id/assets/media/default/default-product.png" ){
                             AsyncImage(url: imageUrl){ image in
                                          image
                                            .resizable()
@@ -48,7 +48,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: $isShowingSheet){
                 
-//                AddProductView(products: products)
+                AddProductView(products: Products())
             }
             .task{
                 await loadData()
@@ -59,14 +59,14 @@ struct ContentView: View {
         guard let url = URL(string: "https://app.getswipe.in/api/public/get") else {
             return
         }
-        print("123 url is \(url)")
+//        print("123 url is \(url)")
         do {
             let (data, _) = try await URLSession.shared.data(from:url)
-            print("234 data is \(data)")
-            if let decoded = try? JSONDecoder().decode([Product].self,from: data){
-                print("567 decoded is \(decoded)")
-                products.listProducts = decoded
-                print("7854 \(products.listProducts)")
+//            print("234 data is \(data)")
+            if let decoded = try? JSONDecoder().decode([Products].self,from: data){
+//                print("567 decoded is \(decoded)")
+                products = decoded
+//                print("7854 \(products)")
             }else {
                 print("Failed to decode JSON data")
             }
