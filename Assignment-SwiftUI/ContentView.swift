@@ -20,21 +20,28 @@ struct ContentView: View {
                                          image
                                            .resizable()
                                            .scaledToFit()
-                                           .frame(width: 50, height: 50)
+                                           .frame(width: 100, height: 100)
+                                           .clipShape(.rect(cornerRadius: 10))
+                                           .shadow(radius: 10)
                             }placeholder: {
                                 Image(systemName: "photo")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 50, height: 50)
                             }
+                            .padding()
                         }
-                        
-                            
                         VStack(alignment: .leading) {
                             Text(product.product_name)
+                                .font(.title2.weight(.bold))
                             Text(product.product_type)
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(.gray)
                             Text("₹\(product.price, specifier: "%.2f")")
+                                .font(.callout.weight(.semibold))
                             Text("Tax: \((product.tax).formatted())%")
+                                .font(.callout)
+                              
                         }
                     }
                 }

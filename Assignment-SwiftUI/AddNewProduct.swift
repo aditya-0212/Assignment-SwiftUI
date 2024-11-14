@@ -53,6 +53,7 @@ struct AddProductView: View {
                     Task {
                         await uploadProductData()
                     }
+                    
                 }
             }
             .navigationTitle("Add Product")
@@ -107,6 +108,11 @@ struct AddProductView: View {
         } catch {
             print("Error: \(error.localizedDescription)")
         }
+        product_name = ""
+        product_type = ""
+        price = 0.0
+        tax = 0.0
+        selectedImageData = nil
     }
 
    
