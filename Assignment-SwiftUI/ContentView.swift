@@ -15,23 +15,26 @@ struct ContentView: View {
             List(products){ product in
                 Section{
                     HStack{
-                        if let imageUrl = URL(string: product.image ?? "https://dodolan.jogjakota.go.id/assets/media/default/default-product.png" ){
+                        if let imageUrl = URL(string: product.image ?? "" ){
                             AsyncImage(url: imageUrl){ image in
                                          image
                                            .resizable()
                                            .scaledToFit()
-                                           .frame(height: 200)
+                                           .frame(width: 50, height: 50)
                             }placeholder: {
-                                ProgressView()
+                                Image(systemName: "photo")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 50, height: 50)
                             }
                         }
                         
                             
-                        VStack{
-                            Text("\(product.product_name)")
-                            Text("\(product.product_type)")
-                            Text(product.price.formatted())
-                            Text(product.tax.formatted())
+                        VStack(alignment: .leading) {
+                            Text(product.product_name)
+                            Text(product.product_type)
+                            Text("₹\(product.price, specifier: "%.2f")")
+                            Text("Tax: \((product.tax).formatted())%")
                         }
                     }
                 }
@@ -48,7 +51,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: $isShowingSheet){
                 
-                AddProductView(products: Products())
+                AddProductView()
             }
             .task{
                 await loadData()

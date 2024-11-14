@@ -9,10 +9,11 @@
 import SwiftUI
 
 struct Product: Codable{
-    let product_type: String
     let product_name: String
-    let price: Double
-    let tax: Double
+    let product_type: String
+    let price: String
+    let tax: String
+    let image: Data?
 }
 struct Response: Codable{
     let message: String
@@ -24,16 +25,17 @@ struct Response: Codable{
 @Observable
 class Products: Identifiable, Codable{
     enum CodingKeys: String, CodingKey {
-        case _image = "image"
-        case _price  = "price"
         case _product_name = "product_name"
         case _product_type = "product_type"
+        case _price  = "price"
         case _tax = "tax"
+        case _image = "image"
     }
     var id = UUID()
-    var image: String?
-    var price = 0.0
     var product_name = ""
-    var product_type = ""
+    var product_type = "Product"
+    var price = 0.0
     var tax = 0.0
+    var image: String?
+   
 }

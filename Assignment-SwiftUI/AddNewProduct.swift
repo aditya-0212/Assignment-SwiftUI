@@ -8,25 +8,30 @@
 import SwiftUI
 import PhotosUI
 struct AddProductView: View {
-    @Bindable var products: Products
-    @State private var selectedImageData: Data?
-    @State private var pickerItem: PhotosPickerItem?
-    let options = ["Vehicle","Phone","Product","Electronics","Service","Home Applianc"]
+    @State private var product_name = ""
+    @State private var product_type = "Product"
+    @State private var price = 0.0
+    @State private var tax = 0.0
+    @State private var selectedImageData: Data? = nil
+    @State private var pickerItem: PhotosPickerItem? = nil
+    let options = ["Vehicle", "Phone", "Product", "Electronics", "Service", "Home Appliance"]
+
     var body: some View {
         NavigationStack {
-            Form{
-                Picker("Product Type", selection: $products.product_type) {
+            Form {
+                TextField("Product Name", text: $product_name)
+                Picker("Product Type", selection: $product_type) {
                     ForEach(options, id: \.self) { option in
                         Text(option)
                     }
                 }
-                TextField("Product Name", text: $products.product_name)
-                TextField("Selling Price", value: $products.price,format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                TextField("Selling Price", value: $price, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                     .keyboardType(.decimalPad)
-                TextField("Tax Rate", value: $products.tax,format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                TextField("Tax Rate", value: $tax, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                     .keyboardType(.decimalPad)
+
                 VStack {
-                    PhotosPicker(selection: $pickerItem, matching: .images){
+                    PhotosPicker(selection: $pickerItem, matching: .images, photoLibrary: .shared()) {
                         if let selectedImageData, let uiImage = UIImage(data: selectedImageData) {
                             Image(uiImage: uiImage)
                                 .resizable()
@@ -34,54 +39,97 @@ struct AddProductView: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 200)
                         } else {
-                            ContentUnavailableView("No picture",systemImage: "photo.badge.plus",description: Text("Tap to import a photo"))
+                            ContentUnavailableView("No picture", systemImage: "photo.badge.plus", description: Text("Tap to import a photo"))
                         }
                     }
                 }
-                .onChange(of: pickerItem){
-                    Task{
+                .onChange(of: pickerItem) {
+                    Task {
                         selectedImageData = try await pickerItem?.loadTransferable(type: Data.self)
                     }
                 }
-                
-                Button("Submit"){
-                    Task{
-                        await addNewProduct()
+
+                Button("Submit") {
+                    Task {
+                        await uploadProductData()
                     }
-                    
                 }
             }
             .navigationTitle("Add Product")
         }
     }
-   func addNewProduct() async {
-       guard let encoded  = try? JSONEncoder().encode(products) else{
-           print("order object is not encoded")
-           return
-       }
-       print("1111 encoded \(String(data:encoded,encoding: .utf8) ?? "nodata")")
-       let url = URL(string: "https://app.getswipe.in/api/public/add.")!
-       print("2222 url is \(url)")
-       var request = URLRequest(url:url)
-       print("3333 request is \(request)")
-       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-     request.httpMethod = "POST"
-       print("4444 request is \(request)")
-       do{
-           let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-           print("55555 data is \(String(data: data, encoding: .utf8) ?? "No data")")
-           if let decoded = try? JSONDecoder().decode(Response.self, from: data){
-              print("734 decoded data is \(decoded)")
-           }
-       }
-       catch{
-          
-       }
-    
-      
+
+
+    func uploadProductData() async {
+        guard let imageData = selectedImageData else {
+            print("No image selected.")
+            return
+        }
+
+        guard let url = URL(string: "https://app.getswipe.in/api/public/add") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        let httpBody = createMultipartBody(
+            boundary: boundary,
+            parameters: [
+                "product_name": product_name,
+                "product_type": product_type,
+                "price": "\(price)",
+                "tax": "\(tax)"
+            ],
+            fileData: imageData,
+            fileName: "selectedImage.jpg",
+            mimeType: "image/jpeg"
+        )
+
+        request.httpBody = httpBody
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let response = response as? HTTPURLResponse {
+                print("Response Code: \(response.statusCode)")
+            }
+
+            if let jsonResponse = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                print("Response: \(jsonResponse)")
+                if let message = jsonResponse["message"] as? String {
+                    print("Message: \(message)")
+                }
+                if let success = jsonResponse["success"] as? Bool, success {
+                    print("Product added successfully!")
+                }
+            }
+        } catch {
+            print("Error: \(error.localizedDescription)")
+        }
+    }
+
+   
+    func createMultipartBody(boundary: String, parameters: [String: String], fileData: Data, fileName: String, mimeType: String) -> Data {
+        var body = Data()
+
+        for (key, value) in parameters {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"files[]\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(fileData)
+        body.append("\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+        return body
     }
 }
 
 #Preview {
-    AddProductView(products:Products())
+    AddProductView()
 }
